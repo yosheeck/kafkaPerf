@@ -1,3 +1,4 @@
+{{- $kafkaHost := ( .Values.config.kafka_host | replace "$release_name" .Release.Name ) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,6 +16,7 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "perf.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        app: kafka
     spec:
       serviceAccountName: {{ template "perf.serviceAccountName" . }}
       containers:
@@ -23,6 +25,13 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
           imagePullPolicy: {{ .Values.kafka.image.pullPolicy }}
-          command: ["sleep", "100000"]
+          command:
+            - sh
+            - "-c"
+            - {{ (.Values.kafka.image.command | replace "$kafka_host" "localhost" | replace "$kafka_port" (printf "%.0f" .Values.config.kafka_port) ) | quote }}
+          ports:
+            - name: kafka-api
+              containerPort: {{ .Values.config.kafka_port }}
+              protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
