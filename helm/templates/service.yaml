@@ -5,10 +5,10 @@ metadata:
   labels:
 {{ include "perf.labels" . | indent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.kafka.config.serviceType }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
+    - port: {{ .Values.kafka.config.port }}
+      targetPort: {{ .Values.kafka.config.port }}
       protocol: TCP
       name: kafka-api
   selector:

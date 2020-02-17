@@ -1,4 +1,4 @@
-{{- $kafkaHost := ( .Values.config.kafka_host | replace "$release_name" .Release.Name ) -}}
+{{- $kafkaHost := ( .Values.kafka.config.kafka_host | replace "$release_name" .Release.Name ) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,10 +28,10 @@ spec:
           command:
             - sh
             - "-c"
-            - {{ (.Values.kafka.image.command | replace "$kafka_host" "localhost" | replace "$kafka_port" (printf "%.0f" .Values.config.kafka_port) ) | quote }}
+            - {{ (.Values.kafka.image.command | replace "$kafka_host" "localhost" | replace "$kafka_port" (printf "%.0f" .Values.kafka.config.port) ) | quote }}
           ports:
             - name: kafka-api
-              containerPort: {{ .Values.config.kafka_port }}
+              containerPort: {{ .Values.kafka.config.port }}
               protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

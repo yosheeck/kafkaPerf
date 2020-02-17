@@ -18,12 +18,12 @@ kafka:
     #tag: latest
     pullPolicy: IfNotPresent
     command: "until ./bin/kafka-broker-api-versions.sh --bootstrap-server $kafka_host:$kafka_port; do echo waiting for Kafka; sleep 2; done;"
+  config:
+    serviceType: ClusterIP
+    kafka_host: '$release_name-kafka'
+    port: 9092
 
 replicaCount: 1
-
-config:
-  kafka_host: '$release_name-kafka'
-  kafka_port: 9092
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -31,10 +31,6 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name:
-
-service:
-  type: ClusterIP
-  port: 9092
 
 ingress:
   enabled: false
