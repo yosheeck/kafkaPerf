@@ -43,20 +43,31 @@ const testConsumer = async () => {
   console.log('Instantiate consumer')
   const c = new Consumer(['test'], {
     options: {
+      /* the config from original mojaloop helm charts 8.4.0 */
       mode: ConsumerEnums.CONSUMER_MODES.recursive,
-      batchSize: 100,
+      batchSize: 1,
+      pollFrequency: 10,
       recursiveTimeout: 100,
       messageCharset: 'utf8',
       messageAsJSON: true,
       sync: true,
       consumeTimeout: 1000
+
+      /* my config */
     },
     rdkafkaConf: {
+      /* the config from original mojaloop helm charts 8.4.0 */
       'group.id': 'kafka',
-      'metadata.broker.list': 'localhost:9092',
-      'enable.auto.commit': false
+      //'metadata.broker.list': 'localhost:9092',
+      'metadata.broker.list': 'perf-kafka:9092',
+      "socket.keepalive.enable": true
+
+      /* my config */
+      //'enable.auto.commit': false
     },
-    topicConf: {},
+    topicConf: {
+      "auto.offset.reset": "earliest"
+    },
     logger: Logger
   })
 
