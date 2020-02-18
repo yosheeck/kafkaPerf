@@ -28,7 +28,7 @@ spec:
           command:
             - sh
             - "-c"
-            - {{ (.Values.kafka.image.command | replace "$kafka_host" "localhost" | replace "$kafka_port" (printf "%.0f" .Values.kafka.config.port) ) | quote }}
+            - /usr/bin/start-zookeeper.sh && ADVERTISED_HOST={{ $kafkaHost }} /usr/bin/start-kafka.sh
           ports:
             - name: kafka-api
               containerPort: {{ .Values.kafka.config.port }}
