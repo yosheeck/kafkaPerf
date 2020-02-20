@@ -8,3 +8,4 @@ RUN git clone https://github.com/yosheeck/kafkaPerf
 WORKDIR /kafkaPerf
 
 RUN npm ci
+RUN npm install -g nodemon
