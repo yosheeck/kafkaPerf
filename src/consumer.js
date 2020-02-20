@@ -34,10 +34,44 @@
 const Consumer = require('@mojaloop/central-services-stream').Kafka.Consumer
 const ConsumerEnums = require('@mojaloop/central-services-stream').Kafka.Consumer.ENUMS
 const Logger = require('@mojaloop/central-services-logger')
+const { SeriesTool } = require('./seriesTool')
+
+const consumeSendToReceivedSerie = new SeriesTool('sentToReceived')
+const consumeReceivedAllSerie = new SeriesTool('receivedAll')
 
 let tick = 0
 let sendToRcvDelayAcc = 0
 let sendToRcvDelayCnt = 0
+
+const consumeMsg = (message) => {
+  message.value.content.x = ''
+  //console.log(`Message Received by callback function - ${JSON.stringify(message)}`)
+  //console.log(`Msg received idx:${message.value.content.msgIdx} size:${message.size}`)
+  const now = (new Date()).getTime()
+  if (message.value.content.msgIdx <= 1) {
+    console.log('Got msg with idx 0, restarting series')
+    consumeSendToReceivedSerie.clear()
+    consumeReceivedAllSerie.clear()
+    tick = now
+    sendToRcvDelayAcc = 0
+    sendToRcvDelayCnt = 0
+    setTimeout(() => {
+      console.log(JSON.stringify(consumeSendToReceivedSerie.getValuesArray()))
+    }, 4000)
+  }
+  const sendToRcvDelay = now - message.value.content.time
+  sendToRcvDelayAcc += sendToRcvDelay
+  sendToRcvDelayCnt++
+
+  /* Add to series */
+  if (false) {
+    console.log(now, message.value.content.time,
+      'snd->rcv delay:', sendToRcvDelay, 'avg:', sendToRcvDelayAcc / sendToRcvDelayCnt,
+      'time from msg[0]:', now - tick)
+  }
+  consumeSendToReceivedSerie.addDatapoint(sendToRcvDelay)
+  consumeReceivedAllSerie.addDatapoint(now - tick)
+}
 
 const testConsumer = async () => {
   console.log('Instantiate consumer')
@@ -51,9 +85,10 @@ const testConsumer = async () => {
       messageCharset: 'utf8',
       messageAsJSON: true,
       sync: true,
-      consumeTimeout: 1000
+      consumeTimeout: 1000,
 
       /* my config */
+      consumeTimeout: 500
     },
     rdkafkaConf: {
       /* the config from original mojaloop helm charts 8.4.0 */
@@ -89,9 +124,11 @@ const testConsumer = async () => {
         // lets check if we have received a batch of messages or single. This is dependant on the Consumer Mode
         if (Array.isArray(message) && message.length != null && message.length > 0) {
           message.forEach(msg => {
+            consumeMsg(msg)
             c.commitMessage(msg)
           })
         } else {
+          consumeMsg(message)
           c.commitMessage(message)
         }
         resolve(true)
@@ -104,23 +141,6 @@ const testConsumer = async () => {
 
   // consume 'ready' event
   c.on('ready', arg => console.log(`onReady: ${JSON.stringify(arg)}`))
-  // consume 'message' event
-  c.on('message', message => {
-    message.value.content.x = ''
-    console.log(`Message Received by callback function - ${JSON.stringify(message)}`)
-    const now = (new Date()).getTime()
-    if (message.value.content.msgIdx <= 1) {
-      tick = now
-      sendToRcvDelayAcc = 0
-      sendToRcvDelayCnt = 0
-    }
-    const sendToRcvDelay = now - message.value.content.time
-    sendToRcvDelayAcc += sendToRcvDelay
-    sendToRcvDelayCnt++
-    console.log(now, message.value.content.time,
-      'snd->rcv delay:', sendToRcvDelay, 'avg:', sendToRcvDelayAcc / sendToRcvDelayCnt,
-      'time from msg[0]:', now - tick)
-  })
   // consume 'batch' event
   c.on('batch', message => console.log(`onBatch: ${JSON.stringify(message)}`))
 
