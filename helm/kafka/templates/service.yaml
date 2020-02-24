@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "perf.fullname" . }}-kafka
+  name: {{ include "perf.fullname" . }}
   labels:
 {{ include "perf.labels" . | indent 4 }}
 spec:

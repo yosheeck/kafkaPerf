@@ -1,0 +1,24 @@
+kafka:
+  name: kafka
+  image:
+    repository: johnnypark/kafka-zookeeper
+    tag: 2.3.0
+    #repository: solsson/kafka
+    #tag: latest
+    pullPolicy: IfNotPresent
+  config:
+    serviceType: ClusterIP
+    kafka_host: '$release_name'
+    port: 9092
+
+replicaCount: 1
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+ingress:
+  enabled: false

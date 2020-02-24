@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "perf.fullname" . }}-producer
+  name: {{ include "perf.fullname" . }}
   labels:
 {{ include "perf.labels" . | indent 4 }}
 spec:
@@ -18,7 +18,7 @@ spec:
     spec:
       serviceAccountName: {{ template "perf.serviceAccountName" . }}
       containers:
-        - name: {{ .Chart.Name }}-producer
+        - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"

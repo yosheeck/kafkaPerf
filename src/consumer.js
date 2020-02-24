@@ -34,38 +34,67 @@
 const Consumer = require('@mojaloop/central-services-stream').Kafka.Consumer
 const ConsumerEnums = require('@mojaloop/central-services-stream').Kafka.Consumer.ENUMS
 const Logger = require('@mojaloop/central-services-logger')
+const base64url = require('base64url')
 const { SeriesTool } = require('./seriesTool')
 
 const consumeSendToReceivedSerie = new SeriesTool('sentToReceived')
 const consumeReceivedAllSerie = new SeriesTool('receivedAll')
+
+//const listenOnTopic = 'topic-transfer-prepare'
+//const listenOnTopic = 'topic-notification-event'
+const listenOnTopic = 'testB'
 
 let tick = 0
 let sendToRcvDelayAcc = 0
 let sendToRcvDelayCnt = 0
 
 const consumeMsg = (message) => {
-  message.value.content.x = ''
   //console.log(`Message Received by callback function - ${JSON.stringify(message)}`)
   //console.log(`Msg received idx:${message.value.content.msgIdx} size:${message.size}`)
   const now = (new Date()).getTime()
-  if (message.value.content.msgIdx <= 1) {
-    console.log('Got msg with idx 0, restarting series')
+  // we look for magic values to know, that is the 1st message of the serie
+  let isItFirstPacket = false
+  let packetStartTime = 0
+  if ((message.value.content) && (message.value.content.payload)) {
+    // This is message coming from central-ledger chain
+    const payloadEncoded = message.value.content.payload
+    if ((payloadEncoded)
+    && (typeof payloadEncoded === 'string')
+    && (payloadEncoded.indexOf(',') !== -1)) {
+      const payloadDecoded = base64url.decode(payloadEncoded.substr(payloadEncoded.indexOf(',') + 1))
+      const payload = JSON.parse(payloadDecoded)
+      if ((payload.testData) && (payload.testData.msgIdx <= 1)) {
+        isItFirstPacket = true
+      }
+      packetStartTime = payload.testData.time
+    } else {
+      console.log('payloadEncoded contains unrecognized packet:', payloadEncoded)
+    }
+  } else {
+    const msgIdx = message.value.content.msgIdx
+    if (msgIdx <= 1) {
+      isItFirstPacket = true
+    }
+    packetStartTime = message.value.content.time
+  }
+  if (isItFirstPacket) {
+    console.log('Got msg marked as starting packet, restarting series...')
     consumeSendToReceivedSerie.clear()
     consumeReceivedAllSerie.clear()
     tick = now
     sendToRcvDelayAcc = 0
     sendToRcvDelayCnt = 0
     setTimeout(() => {
-      console.log(JSON.stringify(consumeSendToReceivedSerie.getValuesArray()))
+      // console.log(JSON.stringify(consumeSendToReceivedSerie.getValuesArray()))
     }, 4000)
   }
-  const sendToRcvDelay = now - message.value.content.time
+  const sendToRcvDelay = now - packetStartTime
   sendToRcvDelayAcc += sendToRcvDelay
   sendToRcvDelayCnt++
 
   /* Add to series */
   if (false) {
-    console.log(now, message.value.content.time,
+    console.log(now, packetStartTime,
       'snd->rcv delay:', sendToRcvDelay, 'avg:', sendToRcvDelayAcc / sendToRcvDelayCnt,
       'time from msg[0]:', now - tick)
   }
@@ -74,8 +103,9 @@ const consumeMsg = (message) => {
 }
 
 const testConsumer = async () => {
-  console.log('Instantiate consumer')
-  const c = new Consumer(['test'], {
+  console.log('Instantiate consumer on topic', listenOnTopic)
+
+  const c = new Consumer([listenOnTopic], {
     options: {
       /* the config from original mojaloop helm charts 8.4.0 */
       mode: ConsumerEnums.CONSUMER_MODES.recursive,
