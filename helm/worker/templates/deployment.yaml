@@ -23,6 +23,9 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
           imagePullPolicy: {{ .Values.node.image.pullPolicy }}
-          command: ["sleep", "100000"]
+          command:
+            - sh
+            - "-c"
+            - {{ .Values.node.image.command | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
