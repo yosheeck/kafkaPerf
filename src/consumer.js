@@ -42,7 +42,7 @@ const consumeReceivedAllSerie = new SeriesTool('receivedAll')
 
 //const listenOnTopic = 'topic-transfer-prepare'
 //const listenOnTopic = 'topic-notification-event'
-const listenOnTopic = 'testB'
+const listenOnTopic = 'testEnd'
 
 let tick = 0
 let sendToRcvDelayAcc = 0

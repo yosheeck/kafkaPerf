@@ -12,18 +12,14 @@ const consumeReceivedAllSerie = new SeriesTool('receivedAll')
 
 //const listenOnTopic = 'topic-transfer-prepare'
 //const listenOnTopic = 'topic-notification-event'
-const listenOnTopic = 'testA'
-const produceToTopic = 'testB'
+const listenOnTopic = process.env.CONSUME_TOPIC || 'testA'
+let produceToTopic = 'testB'
 
 let tick = 0
 let sendToRcvDelayAcc = 0
 let sendToRcvDelayCnt = 0
 
 let kafkaProducer = null
-
-const producerTopicConf = {
-  topicName: produceToTopic
-}
 
 const stats = {
   msgPassed: 0,
@@ -39,7 +35,18 @@ setTimeout(logStats, 1000)
 
 const consumeMsg = async (messageToPass) => {
   const now = (new Date()).getTime()
-  //console.log('messageToPass:', messageToPass)
+
+  if (messageToPass.value.content.sendToArray) {
+    const newProduceToTopic = messageToPass.value.content.sendToArray.shift()
+    if (produceToTopic !== newProduceToTopic) {
+      produceToTopic = newProduceToTopic
+      stats.passingToTopic = produceToTopic
+      console.log(`changed produce target topic to ${produceToTopic}`)
+    }
+  }
+  const producerTopicConf = {
+    topicName: produceToTopic
+  }
 
   await kafkaProducer.sendMessage(messageToPass.value, producerTopicConf).then(results => {
     stats.msgPassed++

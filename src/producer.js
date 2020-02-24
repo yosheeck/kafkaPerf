@@ -45,9 +45,11 @@ const { initProducer } = require('./producerFactory')
 
 const msgFactory = MsgDumbFactory
 //const msgFactory = MsgToPrepareTopicFactory
-msgFactory.topicName = 'testA'
 
-const msgCnt = 10000
+const sendToArray = ['testA', 'testB', 'testEnd']
+msgFactory.topicName = sendToArray.shift()
+
+const msgCnt = 100
 let tick = 0
 
 const sendOneMessage = async (kafkaProducer, topicConf, msgIdx) => {
@@ -56,7 +58,8 @@ const sendOneMessage = async (kafkaProducer, topicConf, msgIdx) => {
     msgIdx++
     const messageToSend = msgFactory.getNewMsg({
         msgIdx,
-        time
+        time,
+        sendToArray
       })
     Logger.info(`sendOneMessage idx=${msgIdx}`)
     try {

@@ -1,11 +1,12 @@
 const topicName = 'test'
 
-const getNewMsg = ({msgIdx, time}) => {
+const getNewMsg = ({msgIdx, time, sendToArray}) => {
     const msg = {
       content: {
         msgIdx,
         time,
-        x: '1'.repeat(3000)
+        x: '1'.repeat(3000),
+        sendToArray
       }
     }
 
