@@ -52,6 +52,8 @@ const sendToArray = [
   'testC',
   'testD',
   'testE',
+  'testF',
+  'testG',
   'testEnd']
 msgFactory.topicName = sendToArray.shift()
 
