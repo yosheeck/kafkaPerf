@@ -4,7 +4,7 @@ node:
     repository: yosheeck/mojaloop-kafka-perf
     tag: 1.0.0
     pullPolicy: IfNotPresent
-    command: "git pull && node src/reproduce.js"
+    command: "git pull && CONSUME_TOPIC=testE node src/reproduce.js"
 
 replicaCount: 1
 

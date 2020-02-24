@@ -46,7 +46,13 @@ const { initProducer } = require('./producerFactory')
 const msgFactory = MsgDumbFactory
 //const msgFactory = MsgToPrepareTopicFactory
 
-const sendToArray = ['testA', 'testB', 'testEnd']
+const sendToArray = [
+  'testA',
+  'testB',
+  'testC',
+  'testD',
+  'testE',
+  'testEnd']
 msgFactory.topicName = sendToArray.shift()
 
 const msgCnt = 100
