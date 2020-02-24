@@ -25,12 +25,25 @@ const producerTopicConf = {
   topicName: produceToTopic
 }
 
+const stats = {
+  msgPassed: 0,
+  passingToTopic: ''
+}
+const logStats = () => {
+  console.log(`passed ${stats.msgPassed} messages to ${stats.passingToTopic}`)
+  stats.msgPassed = 0
+  setTimeout(logStats, 1000)
+}
+
+setTimeout(logStats, 1000)
+
 const consumeMsg = async (messageToPass) => {
   const now = (new Date()).getTime()
   //console.log('messageToPass:', messageToPass)
 
   await kafkaProducer.sendMessage(messageToPass.value, producerTopicConf).then(results => {
-    Logger.info(`testProducer.sendMessage:: result:'${JSON.stringify(results)}'`)
+    stats.msgPassed++
+    //Logger.info(`REProducer.sendMessage:: result:'${JSON.stringify(results)}'`)
   })
 }
 
